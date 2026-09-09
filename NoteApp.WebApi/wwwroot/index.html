@@ -1,0 +1,204 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NoteApp - Clean Architecture</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #f4f6f8;
+            margin: 0;
+            padding: 30px 15px;
+        }
+
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+        }
+
+        .card-form {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        textarea {
+            height: 80px;
+            resize: vertical;
+        }
+
+        button.btn-save {
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+        }
+
+            button.btn-save:hover {
+                background: #1d4ed8;
+            }
+
+        .notes-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .note-card {
+            background: #fff;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .note-details {
+            flex-grow: 1;
+            padding-right: 15px;
+        }
+
+            .note-details h3 {
+                margin: 0 0 6px 0;
+                color: #1e293b;
+                font-size: 17px;
+            }
+
+            .note-details p {
+                margin: 0 0 8px 0;
+                color: #475569;
+                font-size: 14px;
+                line-height: 1.4;
+            }
+
+            .note-details small {
+                color: #94a3b8;
+                font-size: 12px;
+            }
+
+        button.btn-del {
+            background: #ef4444;
+            color: #fff;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+            button.btn-del:hover {
+                background: #dc2626;
+            }
+
+        .empty-text {
+            text-align: center;
+            color: #64748b;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Not Defterim (Clean Architecture)</h1>
+
+        <div class="card-form">
+            <input type="text" id="title" placeholder="Not Başlığı...">
+            <textarea id="content" placeholder="Not İçeriği..."></textarea>
+            <button class="btn-save" onclick="createNote()">Notu Kaydet</button>
+        </div>
+
+        <div class="notes-list" id="notesContainer">
+            <div class="empty-text">Notlar yükleniyor...</div>
+        </div>
+    </div>
+
+    <script>const API_URL = '/api/Notes';
+
+        async function loadNotes() {
+            try {
+                const res = await fetch(API_URL);
+                const notes = await res.json();
+                const container = document.getElementById('notesContainer');
+
+                if (!notes || notes.length === 0) {
+                    container.innerHTML = '<div class="empty-text">Henüz kaydedilmiş bir not yok.</div>';
+                    return;
+                }
+
+                container.innerHTML = notes.map(n => `
+                    <div class="note-card">
+                        <div class="note-details">
+                            <h3>${escapeHtml(n.title)}</h3>
+                            <p>${escapeHtml(n.content)}</p>
+                            <small>${new Date(n.createdAt).toLocaleString('tr-TR')}</small>
+                        </div>
+                        <button class="btn-del" onclick="deleteNote('${n.id}')">Sil</button>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error('Hata:', err);
+            }
+        }
+
+        async function createNote() {
+            const titleInput = document.getElementById('title');
+            const contentInput = document.getElementById('content');
+            const title = titleInput.value.trim();
+            const content = contentInput.value.trim();
+
+            if (!title || !content) {
+                alert('Lütfen başlık ve içerik alanlarını doldurun.');
+                return;
+            }
+
+            await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, content })
+            });
+
+            titleInput.value = '';
+            contentInput.value = '';
+            loadNotes();
+        }
+
+        async function deleteNote(id) {
+            if (confirm('Bu notu silmek istediğinize emin misiniz?')) {
+                await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                loadNotes();
+            }
+        }
+
+        function escapeHtml(str) {
+            return str ? str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
+        }
+
+        loadNotes();</script>
+</body>
