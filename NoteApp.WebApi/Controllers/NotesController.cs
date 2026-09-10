@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using NoteApp.Application.Features.Notes.Commands.CreateNote;
 using NoteApp.Application.Features.Notes.Commands.DeleteNote;
 using NoteApp.Application.Features.Notes.Commands.UpdateNote;
-using NoteApp.Application.Features.Notes.Queries.GetNotes;
+using NoteApp.Application.Features.GetNotes.Queries;
 using NoteApp.Application.Features.Notes.Queries.GetNoteById;
 
 namespace NoteApp.WebApi.Controllers;
@@ -79,6 +79,8 @@ public class NotesController : ControllerBase
             return NotFound(new { Message = "Silinecek not bulunamadı." });
         }
 
-        return Ok(new { Message = "Not başarıyla silindi." });
+        return Ok(new { Message = "SSNot başarıyla silindi." });
     }
-} 
+}
+
+

@@ -1,17 +1,13 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using NoteApp.Application.Common.Interfaces;
+using NoteApp.Domain.Entities;
 
-namespace NoteApp.Application.Features.Notes.Queries.GetNotes;
+namespace NoteApp.Application.Features.GetNotes.Queries;
 
-// Dışarıya döneceğimiz veri modeli (DTO)
-public record NoteDto(Guid Id, string Title, string Content, DateTime CreatedAt, bool IsArchived);
+public record GetNotesQuery : IRequest<List<Note>>;
 
-// MediatR Query isteği
-public record GetNotesQuery : IRequest<List<NoteDto>>;
-
-// Sorguyu işleyen Handler
-public class GetNotesQueryHandler : IRequestHandler<GetNotesQuery, List<NoteDto>>
+public class GetNotesQueryHandler : IRequestHandler<GetNotesQuery, List<Note>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -20,11 +16,10 @@ public class GetNotesQueryHandler : IRequestHandler<GetNotesQuery, List<NoteDto>
         _context = context;
     }
 
-    public async Task<List<NoteDto>> Handle(GetNotesQuery request, CancellationToken cancellationToken)
+    public async Task<List<Note>> Handle(GetNotesQuery request, CancellationToken cancellationToken)
     {
         return await _context.Notes
-            .AsNoTracking()
-            .Select(n => new NoteDto(n.Id, n.Title, n.Content, n.CreatedAt, n.IsArchived))
+            .OrderBy(x => x.CreatedAt)
             .ToListAsync(cancellationToken);
     }
 }

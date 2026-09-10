@@ -1,14 +1,14 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using NoteApp.Application.Common.Interfaces;
-using NoteApp.Application.Features.Notes.Queries.GetNotes;
+using NoteApp.Domain.Entities;
 
 namespace NoteApp.Application.Features.Notes.Queries.GetNoteById;
 
-// Tek bir Guid Id alıp geriye NoteDto (veya bulunamazsa null) dönecek Query
-public record GetNoteByIdQuery(Guid Id) : IRequest<NoteDto?>;
+// Tek bir Guid Id alıp geriye Note entity'si (bulunamazsa null) döner
+public record GetNoteByIdQuery(Guid Id) : IRequest<Note?>;
 
-public class GetNoteByIdQueryHandler : IRequestHandler<GetNoteByIdQuery, NoteDto?>
+public class GetNoteByIdQueryHandler : IRequestHandler<GetNoteByIdQuery, Note?>
 {
     private readonly IApplicationDbContext _context;
 
@@ -17,17 +17,12 @@ public class GetNoteByIdQueryHandler : IRequestHandler<GetNoteByIdQuery, NoteDto
         _context = context;
     }
 
-    public async Task<NoteDto?> Handle(GetNoteByIdQuery request, CancellationToken cancellationToken)
+    public async Task<Note?> Handle(GetNoteByIdQuery request, CancellationToken cancellationToken)
     {
         var note = await _context.Notes
             .AsNoTracking()
             .FirstOrDefaultAsync(n => n.Id == request.Id, cancellationToken);
 
-        if (note == null)
-        {
-            return null;
-        }
-
-        return new NoteDto(note.Id, note.Title, note.Content, note.CreatedAt, note.IsArchived);
+        return note;
     }
 }
